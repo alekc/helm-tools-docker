@@ -42,8 +42,24 @@ jobs:
           echo "changed=true" >> "$GITHUB_OUTPUT"
           echo "version=$latest" >> "$GITHUB_OUTPUT"
 
+      # A PR opened here (via GITHUB_TOKEN) would never trigger build.yml's
+      # pull_request check, GITHUB_TOKEN-authored events don't cascade into
+      # other workflows. Validate inline instead of depending on that.
+      - name: Validate the bumped Dockerfile builds
+        if: steps.check.outputs.changed == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build (no push)
+        if: steps.check.outputs.changed == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: false
+
       - name: Open PR
         if: steps.check.outputs.changed == 'true'
+        id: pr
         uses: peter-evans/create-pull-request@v7
         with:
           commit-message: "chore(deps): bump vals to v${{ steps.check.outputs.version }}"
@@ -52,6 +68,11 @@ jobs:
             Bumps the pinned `vals` release in the `Dockerfile` to
             [v${{ steps.check.outputs.version }}](https://github.com/helmfile/vals/releases/tag/v${{ steps.check.outputs.version }}),
             with matching linux/amd64 and linux/arm64 checksums from that
-            release's `checksums.txt`.
+            release's `checksums.txt`. Build already validated inline above.
           branch: chore/bump-vals
-          labels: automerge
+
+      - name: Merge
+        if: steps.check.outputs.changed == 'true' && steps.pr.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr merge "${{ steps.pr.outputs.pull-request-number }}" --squash --repo "${{ github.repository }}"

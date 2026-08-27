@@ -21,13 +21,19 @@ jobs:
         with:
           release-type: simple
 
-      - name: Label the release PR for auto-merge
+      # release-please only ever touches CHANGELOG.md and its own version
+      # manifest, it can't break the Dockerfile, so there's nothing to
+      # gate on. Merge directly: a PR opened via GITHUB_TOKEN never
+      # triggers build.yml's pull_request check anyway (GITHUB_TOKEN
+      # events don't cascade into other workflows), so waiting on that
+      # check here would just hang forever.
+      - name: Merge the release PR
         if: steps.release.outputs.pr != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           pr_number=$(echo '${{ steps.release.outputs.pr }}' | jq -r '.number')
-          gh pr edit "$pr_number" --add-label automerge --repo "${{ github.repository }}"
+          gh pr merge "$pr_number" --squash --repo "${{ github.repository }}"
 
   publish:
     needs: release-please
