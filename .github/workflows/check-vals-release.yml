@@ -1,0 +1,57 @@
+name: check-vals-release
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # weekly, Monday 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compare pinned vs latest vals release
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          current=$(grep -oP '(?<=ARG VALS_VERSION=)[0-9.]+' Dockerfile)
+          latest=$(gh api repos/helmfile/vals/releases/latest --jq '.tag_name' | sed 's/^v//')
+          echo "current=$current latest=$latest"
+          if [ "$current" = "$latest" ]; then
+            echo "up to date"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          checksums=$(curl -sSL "https://github.com/helmfile/vals/releases/download/v${latest}/vals_${latest}_checksums.txt")
+          amd64=$(echo "$checksums" | grep "linux_amd64.tar.gz" | awk '{print $1}')
+          arm64=$(echo "$checksums" | grep "linux_arm64.tar.gz" | awk '{print $1}')
+          if [ -z "$amd64" ] || [ -z "$arm64" ]; then
+            echo "could not resolve checksums for v${latest}" >&2
+            exit 1
+          fi
+          sed -i "s/ARG VALS_VERSION=.*/ARG VALS_VERSION=${latest}/" Dockerfile
+          sed -i "s/amd64) VALS_SHA256=\".*\"/amd64) VALS_SHA256=\"${amd64}\"/" Dockerfile
+          sed -i "s/arm64) VALS_SHA256=\".*\"/arm64) VALS_SHA256=\"${arm64}\"/" Dockerfile
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "version=$latest" >> "$GITHUB_OUTPUT"
+
+      - name: Open PR
+        if: steps.check.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "chore(deps): bump vals to v${{ steps.check.outputs.version }}"
+          title: "chore(deps): bump vals to v${{ steps.check.outputs.version }}"
+          body: |
+            Bumps the pinned `vals` release in the `Dockerfile` to
+            [v${{ steps.check.outputs.version }}](https://github.com/helmfile/vals/releases/tag/v${{ steps.check.outputs.version }}),
+            with matching linux/amd64 and linux/arm64 checksums from that
+            release's `checksums.txt`.
+          branch: chore/bump-vals
+          labels: automerge
