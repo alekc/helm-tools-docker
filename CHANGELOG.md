@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/alekc/helm-tools-docker/compare/v1.0.1...v1.0.2) (2026-08-27)
+
+
+### Bug Fixes
+
+* **ci:** use --auto instead of an immediate merge ([b5be07f](https://github.com/alekc/helm-tools-docker/commit/b5be07fc639dabe5f425d0b091b0ea1c34f44520))
+
 ## [1.0.1](https://github.com/alekc/helm-tools-docker/compare/v1.0.0...v1.0.1) (2026-08-27)
 
 
