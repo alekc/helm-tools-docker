@@ -71,8 +71,12 @@ jobs:
             release's `checksums.txt`. Build already validated inline above.
           branch: chore/bump-vals
 
-      - name: Merge
+      # --auto, not a direct merge: this merge commit needs to land as a
+      # real (non-GITHUB_TOKEN-attributed) push so release.yml's own
+      # push trigger fires on it, same reasoning as release.yml's own
+      # auto-merge step.
+      - name: Auto-merge
         if: steps.check.outputs.changed == 'true' && steps.pr.outputs.pull-request-number != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh pr merge "${{ steps.pr.outputs.pull-request-number }}" --squash --repo "${{ github.repository }}"
+        run: gh pr merge "${{ steps.pr.outputs.pull-request-number }}" --squash --auto --repo "${{ github.repository }}"
