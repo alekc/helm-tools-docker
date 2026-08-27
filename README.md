@@ -12,18 +12,19 @@ a job doesn't have to reinstall them from scratch on every run.
 | `expect` | Alpine package (`apk add expect`)                        | drive `helm package --sign`'s interactive passphrase prompt non-interactively |
 | `vals`   | pinned GitHub release, checksum-verified ([helmfile/vals](https://github.com/helmfile/vals)) | fetch secrets (Infisical and others) via `ref+<backend>://` URIs |
 
-Base: `alpine:3.20`. Multi-arch: `linux/amd64`, `linux/arm64`.
+Base: `alpine` (see the `Dockerfile`'s `FROM` line for the exact tag,
+Dependabot keeps it current). Multi-arch: `linux/amd64`, `linux/arm64`.
 
 ## Usage
 
 ```dockerfile
-FROM ghcr.io/alekc/helm-tools-docker:v1.0.0
+FROM ghcr.io/alekc/helm-tools-docker:v1.0.2
 ```
 
 Or directly in a CI job:
 
 ```yaml
-image: ghcr.io/alekc/helm-tools-docker:v1.0.0
+image: ghcr.io/alekc/helm-tools-docker:v1.0.2
 script:
   - helm version
   - vals env -f secrets.yaml
@@ -32,28 +33,34 @@ script:
 Sanity check what a given tag actually contains:
 
 ```sh
-docker run --rm ghcr.io/alekc/helm-tools-docker:v1.0.0 \
+docker run --rm ghcr.io/alekc/helm-tools-docker:v1.0.2 \
   sh -c 'helm version; gpg --version; expect -v; vals version'
 ```
 
 ## Staying up to date
 
-This image updates itself with no human step:
+Most of this image updates itself with no human step:
 
 - Dependabot tracks the `alpine:X.Y` base image in the `Dockerfile`. Since
   `helm`, `gnupg`, and `expect` are installed via `apk add` (not
   version-pinned), a base image bump carries their versions along with it.
+  Dependabot has no visibility into what `apk add` actually installs, so
+  it isn't "checking" those three, it's just that a base bump happens to
+  carry them forward too.
 - `vals` isn't packaged in stable Alpine, so it's pinned separately by a
   scheduled workflow that checks
-  [helmfile/vals releases](https://github.com/helmfile/vals/releases) and
-  opens a PR bumping the version and its checksum when a new one ships.
-- Every PR from either mechanism auto-merges once a build check confirms
-  the Dockerfile still builds, patch, minor, and major bumps alike, no
-  review gate.
+  [helmfile/vals releases](https://github.com/helmfile/vals/releases),
+  validates the bumped `Dockerfile` builds, and opens+merges a PR.
 - [release-please](https://github.com/googleapis/release-please) cuts a
   new version and tag on every change to `main`, including its own Release
-  PR, which also auto-merges. A merged dependency bump reaches a published,
-  live image with nobody in the loop at any point.
+  PR, which also auto-merges.
+
+One category doesn't auto-merge: Dependabot's `github-actions` bumps that
+edit a `uses: action@vX` line inside `.github/workflows/*.yml` directly.
+GitHub's default `GITHUB_TOKEN` is structurally forbidden from merging a
+PR that touches workflow files, no permission tweak works around it, only
+a real account (or a PAT with `workflow` scope) can. Those PRs need a
+manual merge, or add a PAT if you want that path automatic too.
 
 **Practical consequence**: `:latest` (and the newest `:vX.Y.Z` tag) can
 change out from under you at any time, including a major Alpine bump.
