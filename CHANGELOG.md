@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/alekc/helm-tools-docker/compare/v1.1.0...v1.2.0) (2026-08-28)
+
+
+### Features
+
+* add aws-cli, drop the need for a separate S3 plugin ([d77214c](https://github.com/alekc/helm-tools-docker/commit/d77214cfb09aa8eb454c79f7c00ad570d31e8656))
+
 ## [1.1.0](https://github.com/alekc/helm-tools-docker/compare/v1.0.2...v1.1.0) (2026-08-28)
 
 
