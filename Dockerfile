@@ -18,4 +18,11 @@ RUN set -eu; \
     tar -xzf /tmp/vals.tar.gz -C /usr/local/bin vals; \
     rm /tmp/vals.tar.gz
 
+# gpg-agent's passphrase prompt otherwise needs a tty; loopback pinentry
+# lets --passphrase-file/--passphrase work in a CI job. Baked in here so
+# no job needs gpgconf --reload, nothing's running yet to reload.
+RUN mkdir -p -m 700 /root/.gnupg && \
+    echo "allow-loopback-pinentry" > /root/.gnupg/gpg-agent.conf && \
+    chmod 600 /root/.gnupg/gpg-agent.conf
+
 ENTRYPOINT []
