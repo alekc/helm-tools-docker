@@ -11,6 +11,7 @@ a job doesn't have to reinstall them from scratch on every run.
 | `gnupg`  | Alpine package (`apk add gnupg`)                        | import a signing key, export a keyring        |
 | `expect` | Alpine package (`apk add expect`)                        | drive `helm package --sign`'s interactive passphrase prompt non-interactively |
 | `vals`   | pinned GitHub release, checksum-verified ([helmfile/vals](https://github.com/helmfile/vals)) | fetch secrets (Infisical and others) via `ref+<backend>://` URIs |
+| `aws-cli`| Alpine package (`apk add aws-cli`)                     | publish charts to S3 directly, no Helm plugin needed |
 
 Base: `alpine` (see the `Dockerfile`'s `FROM` line for the exact tag,
 Dependabot keeps it current). Multi-arch: `linux/amd64`, `linux/arm64`.

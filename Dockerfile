@@ -1,6 +1,6 @@
 FROM alpine:3.24
 
-RUN apk add --no-cache helm gnupg expect curl ca-certificates
+RUN apk add --no-cache helm gnupg expect curl ca-certificates aws-cli
 
 ARG VALS_VERSION=0.46.0
 ARG TARGETARCH
