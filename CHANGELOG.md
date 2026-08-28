@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/alekc/helm-tools-docker/compare/v1.0.2...v1.1.0) (2026-08-28)
+
+
+### Features
+
+* bake the gpg-agent loopback-pinentry config into the image ([1f2a953](https://github.com/alekc/helm-tools-docker/commit/1f2a95314c5996667dbcff6679731b299ce0ac8b))
+
 ## [1.0.2](https://github.com/alekc/helm-tools-docker/compare/v1.0.1...v1.0.2) (2026-08-27)
 
 
