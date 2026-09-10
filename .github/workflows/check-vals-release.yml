@@ -47,7 +47,7 @@ jobs:
       # other workflows. Validate inline instead of depending on that.
       - name: Validate the bumped Dockerfile builds
         if: steps.check.outputs.changed == 'true'
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build (no push)
         if: steps.check.outputs.changed == 'true'
