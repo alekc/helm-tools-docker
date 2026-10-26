@@ -2,14 +2,14 @@ FROM alpine:3.24
 
 RUN apk add --no-cache helm gnupg expect curl ca-certificates aws-cli
 
-ARG VALS_VERSION=0.47.0
+ARG VALS_VERSION=0.50.0
 ARG TARGETARCH
 
 # checksums.txt from https://github.com/helmfile/vals/releases/tag/v${VALS_VERSION}
 RUN set -eu; \
     case "${TARGETARCH}" in \
-      amd64) VALS_SHA256="b327e52811c0c84c5adad26bf2536491e07fc75018a84a66109e1e5325a3d833" ;; \
-      arm64) VALS_SHA256="835f3d5d438ab92ce7929498b6fe0543d1972efde39cfd956b1ecda3dc6adff7" ;; \
+      amd64) VALS_SHA256="4cb1664b1e0aa49481cb05fabe2c52d4944dcaab31c4805924b668ae9f54c379" ;; \
+      arm64) VALS_SHA256="1e7c4d2b187391c7ef33be69c548cc6624152e75816c9d458e52a462e409542f" ;; \
       *) echo "unsupported arch: ${TARGETARCH}" >&2; exit 1 ;; \
     esac; \
     curl -sSL -o /tmp/vals.tar.gz \
